@@ -155,16 +155,18 @@ const getIndustryKey = (industry) => {
 
 export const simulateScraping = async (industry, location, onLogUpdate) => {
   const steps = [
-    { log: 'Initializing scraping session...', delay: 600 },
-    { log: 'Rotating residential proxy IPs...', delay: 800 },
-    { log: 'Connecting to search engine nodes...', delay: 500 },
-    { log: `Searching Google Maps for "${industry} in ${location}"...`, delay: 1000 },
-    { log: 'Found 135 matching results. Extracting map cards...', delay: 700 },
-    { log: 'Scraping business names and map coordinates...', delay: 900 },
-    { log: 'Crawling business websites for contact numbers...', delay: 1100 },
-    { log: 'Parsing address structures and microdata...', delay: 600 },
-    { log: 'Calculating average ratings and review metrics...', delay: 400 },
-    { log: 'Consolidating extracted lead entities...', delay: 500 }
+    { log: 'Initializing B2B scraping session...', delay: 500 },
+    { log: 'Rotating residential proxy IPs...', delay: 600 },
+    { log: `Searching business directory for "${industry} in ${location}"...`, delay: 800 },
+    { log: 'Extracting page 1 results (entries 1-20)...', delay: 700 },
+    { log: 'Scrolling search view to load more results (infinite scroll)...', delay: 800 },
+    { log: 'Extracting page 2 results (entries 21-40)...', delay: 700 },
+    { log: 'Scrolling search view to load more results (infinite scroll)...', delay: 800 },
+    { log: 'Extracting page 3 results (entries 41-60)...', delay: 700 },
+    { log: 'Scrolling search view to load more results (infinite scroll)...', delay: 800 },
+    { log: 'Extracting page 4 results (entries 61-80)...', delay: 700 },
+    { log: 'Crawling contact details and check website availability...', delay: 900 },
+    { log: 'Applying filters: selecting leads without websites...', delay: 600 }
   ];
 
   // Run through simulation logs
@@ -182,14 +184,18 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
   const areas = AREA_MAPPING[locKey] || AREA_MAPPING.default;
   const phoneCode = PHONE_PREFIX_MAPPING[locKey] || PHONE_PREFIX_MAPPING.default;
 
-  const count = Math.floor(Math.random() * 6) + 12; // Generate 12-17 leads
+  // Generate a larger number of raw leads (60 to 80 listings)
+  const count = Math.floor(Math.random() * 21) + 60;
   const leads = [];
 
   for (let i = 0; i < count; i++) {
     // Generate unique name combinations
     const prefix = temp.prefixes[Math.floor(Math.random() * temp.prefixes.length)];
     const suffix = temp.suffixes[Math.floor(Math.random() * temp.suffixes.length)];
-    const name = `${prefix} ${suffix}`;
+    const area = areas[Math.floor(Math.random() * areas.length)];
+    
+    // Add local area suffix to business names for variety and uniqueness
+    const name = i % 2 === 0 ? `${prefix} ${suffix} ${area}` : `${prefix} ${suffix}`;
     
     // Check for duplicate name
     if (leads.some(l => l.business_name === name)) {
@@ -198,7 +204,10 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
 
     const domain = name.toLowerCase().replace(/[^a-z0-9]/g, '');
     const webExt = temp.websites[Math.floor(Math.random() * temp.websites.length)];
-    const website = `https://www.${domain}.${webExt === 'edu' ? 'edu.in' : webExt === 'salon' || webExt === 'spa' || webExt === 'gym' ? 'in' : 'com'}`;
+    
+    // Mix of website availability: only 1 in 3 listings (33%) has a website
+    const hasWebsite = i % 3 === 0;
+    const website = hasWebsite ? `https://www.${domain}.${webExt === 'edu' ? 'edu.in' : webExt === 'salon' || webExt === 'spa' || webExt === 'gym' ? 'in' : 'com'}` : '';
 
     // Create random Indian phone number (either landline or mobile)
     let phoneNumber;
@@ -211,7 +220,6 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
       phoneNumber = `${phoneCode}-${number}`;
     }
 
-    const area = areas[Math.floor(Math.random() * areas.length)];
     const formattedCity = location.charAt(0).toUpperCase() + location.slice(1).toLowerCase();
     const address = `${Math.floor(Math.random() * 150) + 1}, Main Road, ${area}, ${formattedCity}, India`;
 
@@ -222,17 +230,20 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
       business_name: name,
       phone_number: phoneNumber,
       address,
-      website,
+      website: website || null,
       rating: parseFloat(rating),
       category: industry.charAt(0).toUpperCase() + industry.slice(1).toLowerCase(),
       city: formattedCity
     });
   }
 
+  // Filter to return only leads that do not have a website
+  const filteredLeads = leads.filter(lead => !lead.website || lead.website.trim() === '');
+
   if (onLogUpdate) {
     onLogUpdate('Successfully scraped B2B leads. Synchronizing database...');
   }
   await new Promise((resolve) => setTimeout(resolve, 800));
 
-  return leads;
+  return filteredLeads;
 };
