@@ -5,6 +5,13 @@
 -- creation directly from the React frontend.
 -- ==========================================
 
+-- Clean up any existing functions to prevent signature/return type conflict errors
+DROP FUNCTION IF EXISTS create_dynamic_leads_table(text);
+DROP FUNCTION IF EXISTS insert_lead_into_table(text, jsonb);
+DROP FUNCTION IF EXISTS select_from_table(text);
+DROP FUNCTION IF EXISTS list_lead_tables();
+DROP FUNCTION IF EXISTS drop_lead_table(text);
+
 -- 1. Create Dynamic Leads Table RPC
 -- Creates a new table for a specific query if it doesn't already exist.
 -- Security definer runs with database owner privileges to bypass standard public DDL restrictions.

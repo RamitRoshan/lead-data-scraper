@@ -91,16 +91,6 @@ const Sidebar = ({
           </span>
           <FiArrowRight class="w-3.5 h-3.5 text-zinc-600" />
         </button>
-
-        <a
-          href="https://supabase.com/docs"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="w-full flex items-center gap-2 p-2 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-white/5 transition-all duration-200"
-        >
-          <FiHelpCircle class="w-4 h-4 text-zinc-500" />
-          <span>Supabase Docs</span>
-        </a>
       </div>
     </aside>
   );
