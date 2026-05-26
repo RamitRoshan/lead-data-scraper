@@ -291,10 +291,20 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
     // Retain only those leads that do NOT have a website listed, or have an empty website field
     const filteredLeads = leads.filter(lead => !lead.website || lead.website.trim() === '');
 
-    if (onLogUpdate) onLogUpdate(`Scrape complete! Filtered down to ${filteredLeads.length} leads without websites.`);
+    // Sort: Leads that HAVE a mobile number or phone number should appear FIRST
+    // Leads without phone numbers should appear AFTER them
+    const sortedLeads = [...filteredLeads].sort((a, b) => {
+      const hasPhoneA = !!(a.phone_number && typeof a.phone_number === 'string' && a.phone_number.trim());
+      const hasPhoneB = !!(b.phone_number && typeof b.phone_number === 'string' && b.phone_number.trim());
+      if (hasPhoneA && !hasPhoneB) return -1;
+      if (!hasPhoneA && hasPhoneB) return 1;
+      return 0;
+    });
+
+    if (onLogUpdate) onLogUpdate(`Scrape complete! Filtered down to ${sortedLeads.length} leads without websites.`);
     await new Promise(r => setTimeout(r, 800));
 
-    return filteredLeads;
+    return sortedLeads;
 
   } catch (err) {
     console.error('Live Scraping Execution Error:', err);
