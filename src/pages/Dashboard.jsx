@@ -85,7 +85,17 @@ const Dashboard = () => {
     try {
       setActiveTable(tableName);
       const data = await getLeads(tableName);
-      setLeadsData(data || []);
+      
+      // Sort retrieved leads to guarantee phone numbers are always displayed first in the table
+      const sortedData = (data || []).sort((a, b) => {
+        const hasPhoneA = !!(a.phone_number && typeof a.phone_number === 'string' && a.phone_number.trim());
+        const hasPhoneB = !!(b.phone_number && typeof b.phone_number === 'string' && b.phone_number.trim());
+        if (hasPhoneA && !hasPhoneB) return -1;
+        if (!hasPhoneA && hasPhoneB) return 1;
+        return 0;
+      });
+
+      setLeadsData(sortedData);
     } catch (err) {
       showToast(err.message, 'error');
     }

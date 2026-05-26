@@ -301,6 +301,7 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
       return 0;
     });
 
+
     if (onLogUpdate) onLogUpdate(`Scrape complete! Filtered down to ${sortedLeads.length} leads without websites.`);
     await new Promise(r => setTimeout(r, 800));
 
