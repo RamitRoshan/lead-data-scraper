@@ -21,7 +21,7 @@ export const sanitizeTableName = (industry, location) => {
     .replace(/[^a-z0-9\s_]/g, '')
     .replace(/\s+/g, '_');
 
-  return `leads_${cleanIndustry}_${cleanLocation}`;
+  return `leads_${cleanIndustry}_in_${cleanLocation}`;
 };
 
 /**
@@ -31,15 +31,23 @@ export const sanitizeTableName = (industry, location) => {
 export const formatTableName = (tableName) => {
   if (!tableName || !tableName.startsWith('leads_')) return tableName;
   
-  const parts = tableName.replace(/^leads_/, '').split('_');
+  const content = tableName.replace(/^leads_/, '');
+  
+  const formatWord = (word) => word.charAt(0).toUpperCase() + word.slice(1);
+  const formatPhrase = (phrase) => phrase.split('_').map(formatWord).join(' ');
+
+  if (content.includes('_in_')) {
+    const [industryPart, locationPart] = content.split('_in_');
+    return `${formatPhrase(industryPart)} in ${formatPhrase(locationPart)}`;
+  }
+  
+  const parts = content.split('_');
   if (parts.length < 2) return tableName;
   
   // Try to separate industry and location.
   // By convention, the last element is the location (or we can reconstruct it)
   const location = parts[parts.length - 1];
   const industryParts = parts.slice(0, parts.length - 1);
-  
-  const formatWord = (word) => word.charAt(0).toUpperCase() + word.slice(1);
   
   const industry = industryParts.map(formatWord).join(' ');
   const formattedLocation = formatWord(location);
@@ -170,6 +178,9 @@ const getOSMQueryTags = (industry) => {
   }
   if (ind.includes('beauty') || ind.includes('parlour') || ind.includes('salon') || ind.includes('spa') || ind.includes('hair') || ind.includes('massage')) {
     return 'node["shop"="beauty"];way["shop"="beauty"];node["shop"="hairdresser"];way["shop"="hairdresser"];';
+  }
+  if (ind.includes('property') || ind.includes('estate') || ind.includes('broker') || ind.includes('dealer') || ind.includes('realtor')) {
+    return 'node["office"="estate_agent"];way["office"="estate_agent"];node["shop"="estate_agent"];way["shop"="estate_agent"];';
   }
   
   // Fallback to searching dynamically by name, amenity, or shop tags matching category
