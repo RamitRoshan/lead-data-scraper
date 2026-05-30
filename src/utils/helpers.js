@@ -223,11 +223,11 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
     }
     await new Promise(r => setTimeout(r, 800));
 
-    if (onLogUpdate) onLogUpdate('Connecting to OpenStreetMap Overpass API (around 5000m radius)...');
+    if (onLogUpdate) onLogUpdate('Connecting to OpenStreetMap Overpass API (around 30000m radius)...');
     await new Promise(r => setTimeout(r, 600));
 
     const tagsStr = getOSMQueryTags(industry);
-    const radius = 5000;
+    const radius = 30000;
     
     // Construct Overpass QL query based on coordinates and tags
     const tagQueries = tagsStr
@@ -241,7 +241,7 @@ export const simulateScraping = async (industry, location, onLogUpdate) => {
       (
         ${tagQueries};
       );
-      out body 80;
+      out body;
     `;
 
     if (onLogUpdate) onLogUpdate('Dispatching Overpass QL query...');
